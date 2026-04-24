@@ -33,7 +33,7 @@ export const registerUser = async (userData) => {
     await checkServerConnection();
 
     try {
-        const response = await fetch(`${BASE_URL}/register`, {
+        const response = await fetch(`${BASE_URL}/auth/register`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -54,7 +54,7 @@ export const loginUser = async (credentials) => {
     await checkServerConnection();
 
     try {
-        const response = await fetch(`${BASE_URL}/login`, {
+        const response = await fetch(`${BASE_URL}/auth/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -73,7 +73,7 @@ export const loginUser = async (credentials) => {
 
 export const getCurrentUser = async (token) => {
     try {
-        const response = await fetch(`${BASE_URL}/me`, {
+        const response = await fetch(`${BASE_URL}/auth/me`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
