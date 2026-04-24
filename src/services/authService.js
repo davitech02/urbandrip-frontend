@@ -1,5 +1,5 @@
-const BASE_URL = "http://127.0.0.1:5000/api/auth";
-const HEALTH_URL = "http://127.0.0.1:5000/api/health";
+const BASE_URL = import.meta.env.VITE_API_URL
+const HEALTH_URL = import.meta.env.VITE_API_URL
 
 const checkServerConnection = async () => {
     try {
