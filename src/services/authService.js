@@ -1,5 +1,5 @@
 const BASE_URL = import.meta.env.VITE_API_URL
-const HEALTH_URL = import.meta.env.VITE_API_URL
+const HEALTH_URL = `${import.meta.env.VITE_API_URL}/health`
 
 const checkServerConnection = async () => {
     try {
