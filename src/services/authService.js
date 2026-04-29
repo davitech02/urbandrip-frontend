@@ -3,21 +3,29 @@ const HEALTH_URL = `${import.meta.env.VITE_API_URL}/health`
 
 const checkServerConnection = async () => {
     try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
+
         const response = await fetch(HEALTH_URL, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
             },
+            signal: controller.signal,
         });
+
+        clearTimeout(timeoutId);
 
         if (!response.ok) {
             const data = await response.json().catch(() => null);
-            throw new Error(data?.error || data?.message || 'Cannot connect to server. Make sure the backend is running on port 5000.');
+            throw new Error(data?.error || data?.message || 'Server is not responding');
         }
 
         return true;
     } catch (error) {
-        throw new Error('Cannot connect to server. Make sure the backend is running on port 5000.');
+        // Non-blocking: log error but don't throw
+        console.warn('Health check warning:', error.message);
+        return true; // Allow request to proceed
     }
 };
 
@@ -43,8 +51,8 @@ export const registerUser = async (userData) => {
 
         return await parseResponse(response);
     } catch (error) {
-        if (error.message === 'Failed to fetch' || error.message === 'NetworkError when attempting to fetch resource.') {
-            throw new Error('Cannot connect to server. Make sure the backend is running on port 5000.');
+        if (error.message === 'Failed to fetch' || error.message === 'NetworkError when attempting to fetch resource.' || error.message.includes('AbortError')) {
+            throw new Error('Server is temporarily unavailable. Please try again in a moment.');
         }
         throw error;
     }
@@ -64,8 +72,8 @@ export const loginUser = async (credentials) => {
 
         return await parseResponse(response);
     } catch (error) {
-        if (error.message === 'Failed to fetch' || error.message === 'NetworkError when attempting to fetch resource.') {
-            throw new Error('Cannot connect to server. Make sure the backend is running on port 5000.');
+        if (error.message === 'Failed to fetch' || error.message === 'NetworkError when attempting to fetch resource.' || error.message.includes('AbortError')) {
+            throw new Error('Server is temporarily unavailable. Please try again in a moment.');
         }
         throw error;
     }
