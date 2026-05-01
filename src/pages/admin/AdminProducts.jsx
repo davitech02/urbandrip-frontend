@@ -464,40 +464,6 @@ const AdminProducts = () => {
 };
 
 export default AdminProducts;
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4 text-right flex justify-end gap-2">
-                                    <button
-                                        onClick={() => handleEdit(product)}
-                                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                    >
-                                        <Edit2 className="w-4 h-4" />
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete(product.id)}
-                                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-
-            {/* Modal */}
-            {showModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                        <div className="p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white">
-                            <h3 className="font-['Playfair_Display'] text-lg font-bold">
-                                {editingId ? 'Edit Product' : 'Add New Product'}
-                            </h3>
-                            <button onClick={() => setShowModal(false)} className="text-gray-500 hover:text-gray-700">✕</button>
-                        </div>
-
-                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <input
                                     type="text"

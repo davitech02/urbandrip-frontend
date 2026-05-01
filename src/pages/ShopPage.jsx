@@ -27,7 +27,6 @@ const ShopPage = () => {
   const [openSections, setOpenSections] = useState({ categories: true, price: false, size: false, sort: false });
   const [wishlist, setWishlist] = useState({});
   const [products, setProducts] = useState(productsData);
-  const [loadingProducts, setLoadingProducts] = useState(true);
   const { addToCart } = useCart();
 
   const API_URL = import.meta.env.VITE_API_URL;
@@ -58,13 +57,11 @@ const ShopPage = () => {
       } catch (error) {
         console.error('Failed to load products from API, using fallback:', error);
         setProducts(productsData);
-      } finally {
-        setLoadingProducts(false);
       }
     };
 
     fetchProducts();
-  }, []);
+  }, [API_URL]);
 
   const filteredProducts = useMemo(() => {
     let filtered = [...products];
@@ -96,7 +93,7 @@ const ShopPage = () => {
     }
 
     return filtered;
-  }, [selectedCategory, selectedPrice, selectedSizes, selectedSort]);
+  }, [selectedCategory, selectedPrice, selectedSizes, selectedSort, products]);
 
   const toggleWishlist = (id) => {
     setWishlist((current) => ({ ...current, [id]: !current[id] }));
