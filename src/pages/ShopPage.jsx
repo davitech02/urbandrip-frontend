@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronDown, ChevronUp, Heart } from 'lucide-react';
 import { useCart } from '../context/CartContext';
@@ -26,10 +26,48 @@ const ShopPage = () => {
   const [selectedSort, setSelectedSort] = useState('newest');
   const [openSections, setOpenSections] = useState({ categories: true, price: false, size: false, sort: false });
   const [wishlist, setWishlist] = useState({});
+  const [products, setProducts] = useState(productsData);
+  const [loadingProducts, setLoadingProducts] = useState(true);
   const { addToCart } = useCart();
 
+  const API_URL = import.meta.env.VITE_API_URL;
+
+  // Fetch products from API on mount
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch(`${API_URL}/products`);
+        if (!response.ok) throw new Error('Failed to fetch products');
+        
+        const data = await response.json();
+        if (data.products && data.products.length > 0) {
+          // Transform API products to match the format expected by the component
+          const transformedProducts = data.products.map(p => ({
+            id: p.id,
+            name: p.name,
+            price: p.price,
+            category: p.category,
+            image: p.images && p.images.length > 0 ? p.images[0] : '',
+            description: p.description,
+            badge: p.badge,
+            sizes: p.sizes || ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+            stock_quantity: p.stock_quantity
+          }));
+          setProducts(transformedProducts);
+        }
+      } catch (error) {
+        console.error('Failed to load products from API, using fallback:', error);
+        setProducts(productsData);
+      } finally {
+        setLoadingProducts(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
   const filteredProducts = useMemo(() => {
-    let filtered = [...productsData];
+    let filtered = [...products];
 
     if (selectedCategory !== 'All') {
       filtered = filtered.filter((product) => product.category === selectedCategory);
