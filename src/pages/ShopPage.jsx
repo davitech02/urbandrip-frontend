@@ -99,6 +99,16 @@ const ShopPage = () => {
     setWishlist((current) => ({ ...current, [id]: !current[id] }));
   };
 
+  const getProductImage = (product) => {
+    if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+      return product.images[0];
+    }
+    if (product.image) {
+      return product.image;
+    }
+    return 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&h=400&fit=crop';
+  };
+
   const toggleSection = (section) => {
     setOpenSections((current) => ({ ...current, [section]: !current[section] }));
   };
@@ -261,7 +271,7 @@ const ShopPage = () => {
                 <Link to={`/product/${product.id}`} className="block">
                   <div className="relative overflow-hidden aspect-square">
                     <img
-                      src={product.image}
+                      src={getProductImage(product)}
                       alt={product.name}
                       loading="lazy"
                       onError={(e) => e.target.src = 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&h=400&fit=crop'}
