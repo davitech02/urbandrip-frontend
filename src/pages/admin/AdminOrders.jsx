@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import API from '../../services/api';
 import { Eye, Edit2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const AdminOrders = () => {
     const [orders, setOrders] = useState([]);
@@ -12,6 +12,7 @@ const AdminOrders = () => {
     const [newStatus, setNewStatus] = useState('');
 
     const statuses = ['processing', 'shipped', 'delivered', 'cancelled'];
+    const API_URL = import.meta.env.VITE_API_URL;
 
     useEffect(() => {
         fetchOrders();
@@ -27,12 +28,24 @@ const AdminOrders = () => {
 
     const fetchOrders = async () => {
         try {
-            const res = await API.get('/admin/all');
-            setOrders(res.data.orders || []);
+            const token = localStorage.getItem('urbandrip_token');
+            const response = await fetch(
+                `${API_URL}/api/orders/admin/all`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                }
+            );
+            const data = await response.json();
+            if (response.ok) {
+                setOrders(data.orders || []);
+            } else {
+                setOrders([]);
+            }
             setLoading(false);
         } catch (error) {
             console.error('Error fetching orders:', error);
-            // Show empty list on error
             setOrders([]);
             setLoading(false);
         }
@@ -42,17 +55,32 @@ const AdminOrders = () => {
         if (!newStatus || !selectedOrder) return;
 
         try {
-            await API.put(`/admin/orders/${selectedOrder.id}/status`, {
-                status: newStatus,
-                note: `Status updated to ${newStatus}`
-            });
-
-            setShowModal(false);
-            setSelectedOrder(null);
-            setNewStatus('');
-            fetchOrders();
+            const token = localStorage.getItem('urbandrip_token');
+            const response = await fetch(
+                `${API_URL}/api/orders/${selectedOrder.id}/status`,
+                {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        status: newStatus,
+                        tracking_note: `Status updated to ${newStatus}`
+                    })
+                }
+            );
+            
+            if (response.ok) {
+                toast.success('Order status updated!');
+                setShowModal(false);
+                setSelectedOrder(null);
+                setNewStatus('');
+                fetchOrders();
+            }
         } catch (error) {
             console.error('Error updating order status:', error);
+            toast.error('Failed to update order status');
         }
     };
 

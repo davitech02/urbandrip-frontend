@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
-import API from '../../services/api';
 import { Eye, ToggleLeft, ToggleRight } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const AdminCustomers = () => {
     const [customers, setCustomers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedCustomer, setSelectedCustomer] = useState(null);
     const [showModal, setShowModal] = useState(false);
+    
+    const API_URL = import.meta.env.VITE_API_URL;
 
     useEffect(() => {
         fetchCustomers();
@@ -14,12 +16,24 @@ const AdminCustomers = () => {
 
     const fetchCustomers = async () => {
         try {
-            const res = await API.get('/admin/customers');
-            setCustomers(res.data.customers || []);
+            const token = localStorage.getItem('urbandrip_token');
+            const response = await fetch(
+                `${API_URL}/api/admin/customers`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                }
+            );
+            const data = await response.json();
+            if (response.ok) {
+                setCustomers(data.customers || []);
+            } else {
+                setCustomers([]);
+            }
             setLoading(false);
         } catch (error) {
             console.error('Error fetching customers:', error);
-            // Show empty list on error
             setCustomers([]);
             setLoading(false);
         }
@@ -27,12 +41,28 @@ const AdminCustomers = () => {
 
     const handleToggleStatus = async (customerId, currentStatus) => {
         try {
-            await API.put(`/admin/customers/${customerId}/status`, {
-                is_active: !currentStatus
-            });
-            fetchCustomers();
+            const token = localStorage.getItem('urbandrip_token');
+            const response = await fetch(
+                `${API_URL}/api/admin/customers/${customerId}/status`,
+                {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        is_active: !currentStatus
+                    })
+                }
+            );
+            
+            if (response.ok) {
+                toast.success('Customer status updated!');
+                fetchCustomers();
+            }
         } catch (error) {
             console.error('Error toggling customer status:', error);
+            toast.error('Failed to update status');
         }
     };
 

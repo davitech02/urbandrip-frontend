@@ -1,8 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Star, Minus, Plus, Share2, Heart, ChevronDown } from 'lucide-react';
 import { useCart } from '../context/CartContext';
-import productsData from '../data/shopProducts';
 
 const sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 const details = [
@@ -24,27 +23,69 @@ const details = [
   }
 ];
 
-const relatedProducts = productsData.slice(0, 4);
-
 const ProductDetailPage = () => {
   const { id } = useParams();
-  const product = useMemo(() => productsData.find((item) => item.id === Number(id)), [id]);
-  const [mainImage, setMainImage] = useState(product?.image);
+  const [product, setProduct] = useState(null);
+  const [relatedProducts, setRelatedProducts] = useState([]);
+  const [mainImage, setMainImage] = useState('');
+  const [thumbnails, setThumbnails] = useState([]);
   const [selectedSize, setSelectedSize] = useState('M');
   const [quantity, setQuantity] = useState(1);
   const [openDetail, setOpenDetail] = useState('Materials');
+  const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
+
+  const API_URL = import.meta.env.VITE_API_URL;
+
+  // Fetch product from API
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`${API_URL}/products/${id}`);
+        if (!response.ok) throw new Error('Product not found');
+        const data = await response.json();
+        setProduct(data);
+
+        // Fetch all products for related products
+        const allResponse = await fetch(`${API_URL}/products`);
+        if (allResponse.ok) {
+          const allData = await allResponse.json();
+          setRelatedProducts((allData.products || []).slice(0, 4));
+        }
+      } catch (error) {
+        console.error('Error fetching product:', error);
+        setProduct(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProduct();
+  }, [id, API_URL]);
+
+  // Handle product images
+  useEffect(() => {
+    if (product?.images) {
+      const imgs = typeof product.images === 'string'
+        ? JSON.parse(product.images)
+        : product.images
+      if (imgs && imgs.length > 0) {
+        setMainImage(imgs[0])
+        setThumbnails(imgs)
+      }
+    } else if (product?.image) {
+      setMainImage(product.image)
+      setThumbnails([product.image, product.image, product.image, product.image])
+    }
+  }, [product])
+
+  if (loading) {
+    return <div className="text-center py-20"><div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div><p className="mt-4">Loading product...</p></div>;
+  }
 
   if (!product) {
     return <div className="text-center py-20">Product not found.</div>;
   }
-
-  const thumbnails = [
-    product.image,
-    product.image,
-    product.image,
-    product.image
-  ];
 
   return (
     <div className="bg-[#f9f9f9] min-h-screen px-4 py-12 sm:px-6 lg:px-8">
@@ -61,19 +102,21 @@ const ProductDetailPage = () => {
               />
               <div className="mt-6 grid grid-cols-4 gap-4">
                 {thumbnails.map((thumb, index) => (
-                  <button
+                  <div
                     key={index}
                     onClick={() => setMainImage(thumb)}
-                    className={`overflow-hidden rounded-3xl border ${mainImage === thumb ? 'border-black' : 'border-[#eeeeee]'} bg-white transition hover:border-black`}
+                    className={`aspect-square rounded-lg overflow-hidden cursor-pointer border-2 transition-colors ${
+                      mainImage === thumb ? 'border-black' : 'border-transparent'
+                    }`}
                   >
                     <img
                       src={thumb}
-                      alt={`${product.name} thumbnail ${index + 1}`}
+                      alt={`View ${index + 1}`}
                       loading="lazy"
                       onError={(e) => e.target.src = 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&h=500&fit=crop'}
-                      className="h-24 w-full object-cover"
+                      className="w-full h-full object-cover"
                     />
-                  </button>
+                  </div>
                 ))}
               </div>
             </div>

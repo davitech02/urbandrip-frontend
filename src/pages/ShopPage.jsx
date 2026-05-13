@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronDown, ChevronUp, Heart } from 'lucide-react';
+import { ChevronDown, ChevronUp, Heart, ShoppingCart } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import productsData from '../data/shopProducts';
 
@@ -27,6 +27,7 @@ const ShopPage = () => {
   const [openSections, setOpenSections] = useState({ categories: true, price: false, size: false, sort: false });
   const [wishlist, setWishlist] = useState({});
   const [products, setProducts] = useState(productsData);
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const { addToCart } = useCart();
 
   const API_URL = import.meta.env.VITE_API_URL;
@@ -100,13 +101,15 @@ const ShopPage = () => {
   };
 
   const getProductImage = (product) => {
-    if (product.images && Array.isArray(product.images) && product.images.length > 0) {
-      return product.images[0];
+    try {
+      const imgs = typeof product.images === 'string'
+        ? JSON.parse(product.images)
+        : product.images
+      if (Array.isArray(imgs) && imgs.length > 0) return imgs[0]
+    } catch {
+      // Fallback if image parsing fails
     }
-    if (product.image) {
-      return product.image;
-    }
-    return 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&h=400&fit=crop';
+    return product.image || 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&h=400&fit=crop'
   };
 
   const toggleSection = (section) => {
@@ -128,7 +131,7 @@ const ShopPage = () => {
 
   return (
     <div className="bg-[#f9f9f9] min-h-screen">
-      <div className="relative w-full h-[400px] overflow-hidden">
+      <div className="relative w-full h-[250px] sm:h-[300px] md:h-[400px] overflow-hidden">
         {/* Background Video */}
         <video
           autoPlay
@@ -144,18 +147,111 @@ const ShopPage = () => {
         <div className="absolute inset-0 bg-black/50" />
 
         {/* Text Content */}
-        <div className="relative z-10 flex flex-col items-center justify-center h-full text-white text-center">
-          <h1 className="font-['Playfair_Display'] text-6xl font-bold tracking-wide mb-4">
+        <div className="relative z-10 flex flex-col items-center justify-center h-full text-white text-center px-4">
+          <h1 className="font-['Playfair_Display'] text-4xl sm:text-5xl md:text-6xl font-bold tracking-wide mb-2 sm:mb-3 md:mb-4">
             SHOP ALL
           </h1>
-          <p className="text-sm uppercase tracking-[0.3em] text-gray-300">
+          <p className="text-xs sm:text-sm uppercase tracking-[0.3em] text-gray-300">
             Home &nbsp;•&nbsp; Shop
           </p>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 grid gap-10 xl:grid-cols-[280px_minmax(0,1fr)]">
-        <aside className="space-y-6 rounded-[2rem] border border-[#eeeeee] bg-white p-6 shadow-sm lg:sticky lg:top-24">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-6 sm:py-8 md:py-12 grid gap-4 sm:gap-6 md:gap-10 md:grid-cols-[1fr] lg:grid-cols-[280px_minmax(0,1fr)]">
+        {/* Mobile Filter Button */}
+        <div className="flex items-center justify-between mb-3 md:hidden">
+          <button
+            onClick={() => setMobileFilterOpen(true)}
+            className="flex items-center gap-2 border border-gray-300 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-['Inter'] h-10 sm:h-11 min-w-[44px]"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
+            </svg>
+            Filter
+          </button>
+          <span className="text-xs text-gray-500 font-['Inter']">
+            {filteredProducts.length} items
+          </span>
+        </div>
+
+        {/* Mobile Filter Drawer */}
+        {mobileFilterOpen && (
+          <>
+            <div
+              className="fixed inset-0 bg-black/50 z-40 md:hidden"
+              onClick={() => setMobileFilterOpen(false)}
+            />
+            <div className="fixed left-0 top-0 h-full w-72 bg-white z-50 md:hidden overflow-y-auto shadow-xl">
+              <div className="flex items-center justify-between p-4 border-b">
+                <h3 className="font-['Playfair_Display'] font-bold text-lg">Filters</h3>
+                <button onClick={() => setMobileFilterOpen(false)} className="p-2 hover:bg-gray-100 rounded-lg">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              {/* Filter Content for Mobile */}
+              <div className="p-4 space-y-4">
+                <div className="border border-[#eeeeee] rounded-3xl overflow-hidden">
+                  <button onClick={() => toggleSection('categories')} className="w-full flex items-center justify-between px-5 py-4 text-left font-bold uppercase tracking-[0.25em] text-[#111111]">
+                    Categories
+                    {openSections.categories ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
+                  </button>
+                  {openSections.categories && (
+                    <div className="space-y-2 px-5 pb-4">
+                      {categories.map((category) => (
+                        <button
+                          key={category}
+                          onClick={() => {
+                            setSelectedCategory(category);
+                            setMobileFilterOpen(false);
+                          }}
+                          className={`w-full text-left text-sm ${selectedCategory === category ? 'text-black font-semibold' : 'text-[#555555]'} hover:text-black transition`}
+                        >
+                          {category}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="border border-[#eeeeee] rounded-3xl overflow-hidden">
+                  <button onClick={() => toggleSection('price')} className="w-full flex items-center justify-between px-5 py-4 text-left font-bold uppercase tracking-[0.25em] text-[#111111]">
+                    Price Range
+                    {openSections.price ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
+                  </button>
+                  {openSections.price && (
+                    <div className="space-y-2 px-5 pb-4">
+                      {priceRanges.map((range) => (
+                        <button
+                          key={range.value}
+                          onClick={() => {
+                            setSelectedPrice(range.value);
+                            setMobileFilterOpen(false);
+                          }}
+                          className={`w-full text-left text-sm ${selectedPrice === range.value ? 'text-black font-semibold' : 'text-[#555555]'} hover:text-black transition`}
+                        >
+                          {range.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <button onClick={() => {
+                  clearFilters();
+                  setMobileFilterOpen(false);
+                }} className="w-full rounded-full bg-black px-5 py-4 text-sm font-black uppercase tracking-[0.25em] text-white transition hover:bg-[#333333]">
+                  Clear Filters
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Desktop Sidebar */}
+        <aside className="hidden md:block space-y-6 rounded-[2rem] border border-[#eeeeee] bg-white p-6 shadow-sm lg:sticky lg:top-24">
           <div>
             <h2 className="text-sm font-black uppercase tracking-[0.35em] text-[#111111] font-display">FILTER BY</h2>
           </div>
@@ -248,15 +344,15 @@ const ShopPage = () => {
         </aside>
 
         <main>
-          <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <p className="text-sm uppercase tracking-[0.35em] text-[#555555] font-body">Showing {filteredProducts.length} products</p>
-            <div className="flex items-center gap-3">
-              <label htmlFor="sort" className="text-sm uppercase tracking-[0.35em] text-[#555555] font-body">Sort by</label>
+          <div className="mb-8 flex flex-col gap-3 sm:gap-4 md:flex-row md:items-center md:justify-between">
+            <p className="text-xs sm:text-sm uppercase tracking-[0.35em] text-[#555555] font-body">Showing {filteredProducts.length} products</p>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <label htmlFor="sort" className="hidden sm:block text-xs sm:text-sm uppercase tracking-[0.35em] text-[#555555] font-body">Sort by</label>
               <select
                 id="sort"
                 value={selectedSort}
                 onChange={(e) => setSelectedSort(e.target.value)}
-                className="rounded-full border border-[#dddddd] bg-white px-4 py-3 text-sm text-[#111111] font-body focus:outline-none"
+                className="rounded-full border border-[#dddddd] bg-white px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-[#111111] font-body focus:outline-none min-h-[44px]"
               >
                 {sortOptions.map((option) => (
                   <option key={option.value} value={option.value}>{option.label}</option>
@@ -265,56 +361,64 @@ const ShopPage = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-4 gap-5">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4 lg:gap-5">
             {filteredProducts.map((product) => (
-              <div key={product.id} className="group relative overflow-hidden bg-white border border-gray-100 rounded-md hover:shadow-md transition-shadow duration-300">
-                <Link to={`/product/${product.id}`} className="block">
-                  <div className="relative overflow-hidden aspect-square">
-                    <img
-                      src={getProductImage(product)}
-                      alt={product.name}
-                      loading="lazy"
-                      onError={(e) => e.target.src = 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&h=400&fit=crop'}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                    <div className={`absolute top-4 left-4 rounded-full px-2 py-0.5 text-[9px] font-['Inter'] uppercase tracking-widest text-white ${product.badge === 'SALE' ? 'bg-red-500' : 'bg-black'}`}>
-                      {product.badge}
-                    </div>
+              <div key={product.id} className="bg-white rounded-lg overflow-hidden border border-gray-100 shadow-sm relative flex flex-col h-full">
+                {/* Image Container */}
+                <Link to={`/product/${product.id}`} className="block relative w-full aspect-square overflow-hidden bg-gray-50 group">
+                  <img
+                    src={getProductImage(product)}
+                    alt={product.name}
+                    loading="lazy"
+                    onError={(e) => e.target.src = 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&h=400&fit=crop'}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  {/* Badge - Top Left */}
+                  <div className={`absolute top-2 sm:top-3 left-2 sm:left-3 rounded-full px-2 py-0.5 text-[8px] sm:text-[9px] font-['Inter'] uppercase tracking-widest text-white font-semibold ${product.badge === 'SALE' ? 'bg-red-500' : 'bg-black'}`}>
+                    {product.badge}
                   </div>
                 </Link>
-                <div className="p-3">
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-gray-400 font-['Inter'] font-normal mb-1">{product.category}</p>
-                  <Link to={`/product/${product.id}`} className="block">
-                    <h3 className="font-['Playfair_Display'] text-[15px] font-semibold text-gray-900 leading-snug mb-1">{product.name}</h3>
-                  </Link>
-                  <div className="flex items-center gap-3">
-                    <p className="font-['Inter'] text-[14px] font-medium text-gray-900">₦{product.price.toLocaleString()}</p>
+
+                {/* Product Info */}
+                <div className="p-2 sm:p-3 flex-1 flex flex-col justify-between">
+                  <div>
+                    <p className="text-[8px] sm:text-[9px] uppercase tracking-[0.15em] text-gray-400 font-['Inter'] font-normal mb-0.5 sm:mb-1">{product.category}</p>
+                    <Link to={`/product/${product.id}`} className="block mb-1 sm:mb-2">
+                      <h3 className="font-['Playfair_Display'] text-[11px] sm:text-[12px] md:text-[13px] font-semibold text-gray-900 leading-tight line-clamp-2">{product.name}</h3>
+                    </Link>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <p className="font-['Inter'] text-[11px] sm:text-[12px] md:text-[13px] font-semibold text-gray-900">₦{product.price.toLocaleString()}</p>
                     {product.originalPrice && (
-                      <p className="text-[12px] text-gray-400 line-through ml-2">₦{product.originalPrice.toLocaleString()}</p>
+                      <p className="text-[9px] sm:text-[10px] text-gray-400 line-through">₦{product.originalPrice.toLocaleString()}</p>
                     )}
                   </div>
                 </div>
+
+                {/* Wishlist Button - Top Right */}
                 <button
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     toggleWishlist(product.id);
                   }}
-                  className="absolute top-4 right-4 rounded-full border border-white/70 bg-white/90 p-2 text-[#111111] shadow-lg transition hover:scale-110"
+                  className="absolute top-2 sm:top-3 right-2 sm:right-3 rounded-full border border-white/70 bg-white/95 p-1.5 sm:p-2 text-[#111111] shadow-lg transition hover:scale-110 min-h-[32px] min-w-[32px] sm:min-h-[36px] sm:min-w-[36px] flex items-center justify-center"
                 >
-                  <Heart size={18} className={wishlist[product.id] ? 'fill-[#e63946]' : ''} />
+                  <Heart size={14} className={`sm:w-[18px] sm:h-[18px] ${wishlist[product.id] ? 'fill-[#e63946]' : ''}`} />
                 </button>
-                <div className="absolute bottom-5 left-1/2 w-[90%] -translate-x-1/2 opacity-0 transition-all duration-300 group-hover:opacity-100">
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      addToCart(product, "M", 1);
-                    }}
-                    className="w-full rounded-full bg-black px-5 py-3 text-sm font-black uppercase tracking-[0.25em] text-white transition hover:bg-[#333333]"
-                  >
-                    Add to Cart
-                  </button>
-                </div>
+
+                {/* Add to Cart Circle Button - Bottom Right - Always Visible */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    addToCart(product, "M", 1);
+                  }}
+                  className="absolute bottom-2 sm:bottom-3 right-2 sm:right-3 rounded-full bg-black text-white p-2 sm:p-2.5 shadow-lg transition hover:bg-[#333333] hover:scale-110 min-h-[40px] min-w-[40px] sm:min-h-[44px] sm:min-w-[44px] flex items-center justify-center"
+                  title="Add to Cart"
+                >
+                  <ShoppingCart size={16} className="sm:w-[18px] sm:h-[18px]" />
+                </button>
               </div>
             ))}
           </div>
