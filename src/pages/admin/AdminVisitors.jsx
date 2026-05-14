@@ -24,8 +24,8 @@ const AdminVisitors = () => {
     const fetchVisitorData = async () => {
         try {
             const [statsRes, recentRes] = await Promise.all([
-                API.get('/admin/visitors/stats'),
-                API.get('/admin/visitors/recent')
+                API.get('/api/admin/visitors/stats'),
+                API.get('/api/admin/visitors/recent')
             ]);
 
             const statsData = statsRes.data;

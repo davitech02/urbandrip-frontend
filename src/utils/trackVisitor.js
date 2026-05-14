@@ -22,7 +22,7 @@ export const trackVisitor = async (pagePath) => {
         // Get browser info
         const browserInfo = navigator.userAgent;
         
-        await API.post('/visitors/track', {
+        await API.post('/api/visitors/track', {
             visitor_id: visitorId,
             page_url: pagePath,
             referrer: document.referrer || null,

@@ -29,7 +29,7 @@ const AdminSettings = () => {
 
     const fetchSettings = async () => {
         try {
-            const res = await API.get('/admin/settings');
+            const res = await API.get('/api/admin/settings');
             setSettings(res.data.settings || {});
         } catch (error) {
             console.error('Error fetching settings:', error);
@@ -38,7 +38,7 @@ const AdminSettings = () => {
 
     const fetchDiscountCodes = async () => {
         try {
-            const res = await API.get('/admin/discount-codes');
+            const res = await API.get('/api/admin/discount-codes');
             setDiscountCodes(res.data.codes || []);
             setLoading(false);
         } catch (error) {
@@ -52,7 +52,7 @@ const AdminSettings = () => {
     const handleSettingsSubmit = async (e) => {
         e.preventDefault();
         try {
-            await API.put('/admin/settings', settings);
+            await API.put('/api/admin/settings', settings);
             alert('Settings updated successfully');
             fetchSettings();
         } catch (error) {
@@ -70,9 +70,9 @@ const AdminSettings = () => {
             };
 
             if (editingCodeId) {
-                await API.put(`/admin/discount-codes/${editingCodeId}`, payload);
+                await API.put(`/api/admin/discount-codes/${editingCodeId}`, payload);
             } else {
-                await API.post('/admin/discount-codes', payload);
+                await API.post('/api/admin/discount-codes', payload);
             }
 
             setShowCodeModal(false);
@@ -98,7 +98,7 @@ const AdminSettings = () => {
     const handleDeleteCode = async (id) => {
         if (window.confirm('Are you sure you want to delete this discount code?')) {
             try {
-                await API.delete(`/admin/discount-codes/${id}`);
+                await API.delete(`/api/admin/discount-codes/${id}`);
                 fetchDiscountCodes();
             } catch (error) {
                 console.error('Error deleting discount code:', error);

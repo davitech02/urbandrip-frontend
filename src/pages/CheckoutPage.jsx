@@ -15,6 +15,7 @@ const NIGERIAN_STATES = [
 const CheckoutPage = () => {
     const navigate = useNavigate();
     const { cartItems, getCartTotal, clearCart } = useCart();
+    const API_URL = import.meta.env.VITE_API_URL;
 
     const [formData, setFormData] = useState({
         fullName: '',
@@ -118,7 +119,7 @@ const CheckoutPage = () => {
                                 payment_status: 'successful',
                             };
 
-                            const apiResponse = await fetch('http://127.0.0.1:5000/api/orders/create', {
+                            const apiResponse = await fetch(`${API_URL}/api/orders/create`, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify(orderData),

@@ -36,7 +36,7 @@ const ShopPage = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch(`${API_URL}/products`);
+        const response = await fetch(`${API_URL}/api/products`);
         if (!response.ok) throw new Error('Failed to fetch products');
         
         const data = await response.json();
@@ -47,7 +47,7 @@ const ShopPage = () => {
             name: p.name,
             price: p.price,
             category: p.category,
-            image: p.images && p.images.length > 0 ? p.images[0] : '',
+            image_url: p.images && p.images.length > 0 ? p.images[0] : '',
             description: p.description,
             badge: p.badge,
             sizes: p.sizes || ['XS', 'S', 'M', 'L', 'XL', 'XXL'],

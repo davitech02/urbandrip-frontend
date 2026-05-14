@@ -55,7 +55,7 @@ const DashboardPage = () => {
     const fetchDashboardData = async () => {
         try {
             setLoading(true);
-            const response = await API.get(`/orders/user/${user.id}`);
+            const response = await API.get(`/api/orders/user/${user.id}`);
             const userOrders = response.data.orders;
 
             setOrders(userOrders);

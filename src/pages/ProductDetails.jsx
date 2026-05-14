@@ -12,13 +12,20 @@ const ProductDetails = () => {
 
     useEffect(() => {
         const fetchProduct = async () => {
-            const res = await API.get(`/products/${id}`);
+            const res = await API.get(`/api/products/${id}`);
             setProduct(res.data);
         };
         fetchProduct();
     }, [id]);
 
     if (!product) return <div className="text-center py-20">Loading details...</div>;
+
+    const imageUrl = (Array.isArray(product.images) ? product.images[0] : product.images?.[0]) || 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&h=500&fit=crop';
+    const availableSizes = Array.isArray(product.sizes)
+        ? product.sizes
+        : typeof product.sizes === 'string'
+            ? product.sizes.split(',').map((size) => size.trim()).filter(Boolean)
+            : [];
 
     const handleAddToCart = () => {
         if (!selectedSize) {
@@ -32,7 +39,7 @@ const ProductDetails = () => {
     return (
         <div className="max-w-7xl mx-auto px-4 py-12 grid grid-cols-1 md:grid-cols-2 gap-12">
             <div>
-                <img src={product.image_url} alt={product.name} className="w-full rounded-2xl shadow-lg" />
+                <img src={imageUrl} alt={product.name} className="w-full rounded-2xl shadow-lg" />
             </div>
             <div className="flex flex-col justify-center">
                 <span className="text-accent font-bold tracking-widest uppercase text-sm">{product.category}</span>
@@ -42,9 +49,8 @@ const ProductDetails = () => {
                 
                 <div className="mb-8">
                   <h3 className="font-bold mb-3 uppercase tracking-tight">Select Size</h3>
-                  <div className="flex gap-3">
-                      {/* We add ?.split and || [] to ensure it doesn't crash if sizes are missing */}
-                      {product.sizes ? product.sizes.split(',').map(size => (
+                  <div className="flex gap-3 flex-wrap">
+                      {availableSizes.length > 0 ? availableSizes.map(size => (
                           <button 
                               key={size}
                               onClick={() => setSelectedSize(size)}

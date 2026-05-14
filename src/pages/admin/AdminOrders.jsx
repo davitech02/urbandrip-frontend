@@ -30,7 +30,7 @@ const AdminOrders = () => {
         try {
             const token = localStorage.getItem('urbandrip_token');
             const response = await fetch(
-                `${API_URL}/api/orders/admin/all`,
+                `${API_URL}/api/admin/orders`,
                 {
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -57,7 +57,7 @@ const AdminOrders = () => {
         try {
             const token = localStorage.getItem('urbandrip_token');
             const response = await fetch(
-                `${API_URL}/api/orders/${selectedOrder.id}/status`,
+                `${API_URL}/api/admin/orders/${selectedOrder.id}/status`,
                 {
                     method: 'PUT',
                     headers: {

@@ -10,7 +10,7 @@ const MostPurchasedSection = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await API.get('/products');
+        const res = await API.get('/api/products');
         // For now, we'll just show the first 4 products
         // In a real app, you'd fetch products sorted by purchase count
         setProducts(res.data.slice(0, 4));

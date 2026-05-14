@@ -45,7 +45,7 @@ const CategoryPage = () => {
       try {
         setLoading(true);
         const categoryName = formatCategoryName(category);
-        const res = await API.get(`/products?category=${categoryName}`);
+        const res = await API.get(`/api/products?category=${categoryName}`);
         setProducts(res.data);
         setFilteredProducts(res.data);
         setError(null);

@@ -39,7 +39,7 @@ const MyOrdersPage = () => {
     const fetchOrders = async () => {
         try {
             setLoading(true);
-            const response = await API.get(`/orders/user/${user.id}`);
+            const response = await API.get(`/api/orders/user/${user.id}`);
             setOrders(response.data.orders);
         } catch (error) {
             console.error('Error fetching orders:', error);

@@ -42,13 +42,13 @@ const ProductDetailPage = () => {
     const fetchProduct = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${API_URL}/products/${id}`);
+        const response = await fetch(`${API_URL}/api/products/${id}`);
         if (!response.ok) throw new Error('Product not found');
         const data = await response.json();
         setProduct(data);
 
         // Fetch all products for related products
-        const allResponse = await fetch(`${API_URL}/products`);
+        const allResponse = await fetch(`${API_URL}/api/products`);
         if (allResponse.ok) {
           const allData = await allResponse.json();
           setRelatedProducts((allData.products || []).slice(0, 4));

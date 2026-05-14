@@ -25,7 +25,7 @@ const AdminProducts = () => {
         badge: '',
         material: '',
         care_instructions: '',
-        sizes: JSON.stringify(["XS", "S", "M", "L", "XL", "XXL"]),
+        sizes: ["XS", "S", "M", "L", "XL", "XXL"],
         is_active: true
     });
     const [imageFile, setImageFile] = useState(null);
@@ -67,7 +67,7 @@ const AdminProducts = () => {
         try {
             setLoading(true);
             setError(null);
-            const response = await fetch(`${API_URL}/admin/products`, {
+            const response = await fetch(`${API_URL}/api/admin/products`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -151,6 +151,18 @@ const AdminProducts = () => {
             }
 
             // Now create the product with all image URLs
+            const normalizedSizes = Array.isArray(formData.sizes)
+                ? formData.sizes
+                : (typeof formData.sizes === 'string'
+                    ? (() => {
+                        try {
+                            return JSON.parse(formData.sizes);
+                        } catch {
+                            return ["XS", "S", "M", "L", "XL", "XXL"];
+                        }
+                    })()
+                    : []);
+
             const productPayload = {
                 name: formData.name,
                 category: formData.category,
@@ -160,15 +172,15 @@ const AdminProducts = () => {
                 description: formData.description,
                 material: formData.material,
                 stock_quality: formData.stock_quality,
-                stock_quantity: 100,
+                stock_quantity: formData.stock_quantity ? parseInt(formData.stock_quantity, 10) : 100,
                 care_instructions: formData.care_instructions,
-                sizes: formData.sizes || JSON.stringify(["XS", "S", "M", "L", "XL", "XXL"]),
+                sizes: normalizedSizes.length > 0 ? normalizedSizes : ["XS", "S", "M", "L", "XL", "XXL"],
                 images: uploadedImageUrls,
                 is_active: formData.is_active !== false
             };
 
             const method = editingId ? 'PUT' : 'POST';
-            const endpoint = editingId ? `${API_URL}/admin/products/${editingId}` : `${API_URL}/admin/products`;
+            const endpoint = editingId ? `${API_URL}/api/admin/products/${editingId}` : `${API_URL}/api/admin/products`;
 
             const response = await fetch(endpoint, {
                 method,
@@ -214,15 +226,9 @@ const AdminProducts = () => {
                 badge: '',
                 material: '',
                 care_instructions: '',
-                sizes: JSON.stringify(["XS", "S", "M", "L", "XL", "XXL"]),
+                sizes: ["XS", "S", "M", "L", "XL", "XXL"],
                 is_active: true
             });
-            
-            // Refresh products
-            await fetchProducts();
-        } catch (error) {
-            console.error('Error saving product:', error);
-            toast.error(error.message || 'Failed to save product');
         } finally {
             setSaving(false);
         }
@@ -234,17 +240,37 @@ const AdminProducts = () => {
         const newProductImages = [null, null, null, null, null];
         
         // Populate image preview URLs
-        if (product.images && Array.isArray(product.images)) {
-            product.images.forEach((img, idx) => {
-                if (idx < 5) {
-                    newImagePreviewUrls[idx] = img;
-                }
-            });
+        let existingImages = [];
+        if (product.images) {
+            existingImages = Array.isArray(product.images)
+                ? product.images
+                : (() => {
+                    try {
+                        return JSON.parse(product.images);
+                    } catch {
+                        return [];
+                    }
+                })();
         }
+        existingImages.forEach((img, idx) => {
+            if (idx < 5) {
+                newImagePreviewUrls[idx] = img;
+            }
+        });
         
         setImagePreviewUrls(newImagePreviewUrls);
         setProductImages(newProductImages);
         
+        const productSizes = typeof product.sizes === 'string'
+            ? (() => {
+                try {
+                    return JSON.parse(product.sizes);
+                } catch {
+                    return ["XS", "S", "M", "L", "XL", "XXL"];
+                }
+            })()
+            : product.sizes || ["XS", "S", "M", "L", "XL", "XXL"];
+
         setFormData({
             name: product.name,
             description: product.description || '',
@@ -256,7 +282,7 @@ const AdminProducts = () => {
             badge: product.badge || '',
             material: product.material || '',
             care_instructions: product.care_instructions || '',
-            sizes: JSON.stringify(product.sizes || []),
+            sizes: productSizes,
             is_active: product.is_active
         });
         setShowModal(true);
@@ -266,7 +292,7 @@ const AdminProducts = () => {
         if (!window.confirm('Are you sure you want to delete this product?')) return;
 
         try {
-            const response = await fetch(`${API_URL}/admin/products/${id}`, {
+            const response = await fetch(`${API_URL}/api/admin/products/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -320,7 +346,7 @@ const AdminProducts = () => {
                             badge: '',
                             material: '',
                             care_instructions: '',
-                            sizes: JSON.stringify(["XS", "S", "M", "L", "XL", "XXL"]),
+                            sizes: ["XS", "S", "M", "L", "XL", "XXL"],
                             is_active: true
                         });
                         setShowModal(true);
@@ -617,14 +643,32 @@ const AdminProducts = () => {
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg font-['Inter'] focus:outline-none focus:border-blue-500"
                             />
 
-                            <div>
-                                <label className="block font-['Inter'] text-sm font-medium mb-2">Sizes (JSON array)</label>
-                                <textarea
-                                    value={formData.sizes}
-                                    onChange={(e) => setFormData({ ...formData, sizes: e.target.value })}
-                                    rows="2"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg font-['Inter'] text-sm focus:outline-none focus:border-blue-500"
-                                />
+                            <div className="mt-2">
+                                <label className="font-['Inter'] text-sm font-medium text-gray-700 mb-2 block">
+                                    Available Sizes
+                                </label>
+                                <div className="flex flex-wrap gap-2">
+                                    {['XS', 'S', 'M', 'L', 'XL', 'XXL'].map(size => (
+                                        <button
+                                            key={size}
+                                            type="button"
+                                            onClick={() => {
+                                                const currentSizes = formData.sizes || []
+                                                const newSizes = currentSizes.includes(size)
+                                                    ? currentSizes.filter(s => s !== size)
+                                                    : [...currentSizes, size]
+                                                setFormData({...formData, sizes: newSizes})
+                                            }}
+                                            className={`px-4 py-2 border rounded-lg text-sm font-['Inter'] transition-colors ${
+                                                (formData.sizes || []).includes(size)
+                                                    ? 'bg-black text-white border-black'
+                                                    : 'bg-white text-gray-700 border-gray-300 hover:border-black'
+                                            }`}
+                                        >
+                                            {size}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
 
                             {/* Image Section */}

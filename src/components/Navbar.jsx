@@ -8,6 +8,8 @@ const Navbar = () => {
     const { user, logout } = useAuth();
     const { cartCount } = useCart();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isMobileCategoriesOpen, setIsMobileCategoriesOpen] = useState(false);
 
     const categories = [
         { name: 'T-Shirts', slug: 't-shirts' },
@@ -120,12 +122,130 @@ const Navbar = () => {
                             </Link>
                         )}
                         
-                        <button className="md:hidden text-gray-700 hover:text-black transition-colors duration-300">
+                        <button
+                            onClick={() => setIsMobileMenuOpen(true)}
+                            className="md:hidden text-gray-700 hover:text-black transition-colors duration-300"
+                        >
                             <Menu size={24} />
                         </button>
                     </div>
                 </div>
             </div>
+
+            {/* Mobile menu drawer */}
+            {isMobileMenuOpen && (
+                <div className="fixed inset-0 z-50 flex">
+                    <div
+                        className="fixed inset-0 bg-black/40"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                    />
+                    <div className="relative ml-auto h-full w-full max-w-sm bg-white shadow-2xl p-6 overflow-y-auto">
+                        <div className="flex items-center justify-between mb-8">
+                            <Link
+                                to="/"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="text-xl font-black tracking-tighter text-black"
+                            >
+                                URBANDRIP
+                            </Link>
+                            <button
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="text-gray-700 hover:text-black"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <nav className="space-y-4">
+                            <Link
+                                to="/"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="block text-base font-semibold text-gray-800 hover:text-black transition-colors"
+                            >
+                                Home
+                            </Link>
+                            <Link
+                                to="/shop"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="block text-base font-semibold text-gray-800 hover:text-black transition-colors"
+                            >
+                                Shop
+                            </Link>
+
+                            <div className="space-y-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsMobileCategoriesOpen((open) => !open)}
+                                    className="w-full flex items-center justify-between text-left text-base font-semibold text-gray-800 hover:text-black transition-colors"
+                                >
+                                    <span>Categories</span>
+                                    <ChevronDown size={18} className={`transition-transform duration-200 ${isMobileCategoriesOpen ? 'rotate-180' : ''}`} />
+                                </button>
+                                {isMobileCategoriesOpen && (
+                                    <div className="space-y-2 pl-4 border-l border-gray-200">
+                                        {categories.map((cat) => (
+                                            <Link
+                                                key={cat.slug}
+                                                to={`/category/${cat.slug}`}
+                                                onClick={() => setIsMobileMenuOpen(false)}
+                                                className="block text-sm text-gray-600 hover:text-black transition-colors"
+                                            >
+                                                {cat.name}
+                                            </Link>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            <Link
+                                to="/track"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="block text-base font-semibold text-gray-800 hover:text-black transition-colors"
+                            >
+                                Track Order
+                            </Link>
+                        </nav>
+
+                        <div className="mt-8 border-t border-gray-200 pt-6 space-y-3">
+                            {user ? (
+                                <>
+                                    <Link
+                                        to="/orders"
+                                        onClick={() => setIsMobileMenuOpen(false)}
+                                        className="block text-base font-semibold text-gray-800 hover:text-black transition-colors"
+                                    >
+                                        My Orders
+                                    </Link>
+                                    <Link
+                                        to="/dashboard"
+                                        onClick={() => setIsMobileMenuOpen(false)}
+                                        className="block text-base font-semibold text-gray-800 hover:text-black transition-colors"
+                                    >
+                                        Dashboard
+                                    </Link>
+                                    <button
+                                        onClick={() => {
+                                            logout();
+                                            setIsMobileMenuOpen(false);
+                                        }}
+                                        className="w-full text-left text-base font-semibold text-red-600 hover:text-red-700 transition-colors"
+                                    >
+                                        Logout
+                                    </button>
+                                </>
+                            ) : (
+                                <Link
+                                    to="/login"
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                    className="block text-base font-semibold text-gray-800 hover:text-black transition-colors"
+                                >
+                                    Login
+                                </Link>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Overlay to close dropdown */}
             {isDropdownOpen && (

@@ -1,5 +1,5 @@
 const BASE_URL = import.meta.env.VITE_API_URL
-const HEALTH_URL = `${import.meta.env.VITE_API_URL}/health`
+const HEALTH_URL = `${BASE_URL}/api/health`
 
 const checkServerConnection = async () => {
     try {
@@ -41,7 +41,7 @@ export const registerUser = async (userData) => {
     await checkServerConnection();
 
     try {
-        const response = await fetch(`${BASE_URL}/auth/register`, {
+        const response = await fetch(`${BASE_URL}/api/auth/register`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -62,7 +62,7 @@ export const loginUser = async (credentials) => {
     await checkServerConnection();
 
     try {
-        const response = await fetch(`${BASE_URL}/auth/login`, {
+        const response = await fetch(`${BASE_URL}/api/auth/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -81,7 +81,7 @@ export const loginUser = async (credentials) => {
 
 export const getCurrentUser = async (token) => {
     try {
-        const response = await fetch(`${BASE_URL}/auth/me`, {
+        const response = await fetch(`${BASE_URL}/api/auth/me`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
